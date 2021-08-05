@@ -1,23 +1,41 @@
-package com.example.shakatutorial
+package com.example.shakatutorial.components
 
+import com.example.shakatutorial.components.TicTac.*
+import com.example.shakatutorial.state.GameState
+import com.example.shakatutorial.types.SquareValue.*
+import com.example.shakatutorial.util.calculateWinner
 import org.getshaka.shaka
 import org.getshaka.shaka.{Component, ComponentBuilder, ShadowDom, WebComponent}
-import com.example.shakatutorial.Board
-import TicTac.*
 
 class TicTac extends WebComponent:
+
   override val shadowDom: ShadowDom = TicTacStyles
 
   override val template: ComponentBuilder =
     import shaka.builders.*
+
+    val status: ComponentBuilder =
+      GameState.bind(s => calculateWinner(s.history(s.stepNumber)) match
+        case X => t"Winner: X"
+        case O => t"Winner: O"
+        case Empty => t"NextPlayer: ${if s.xIsNext then "X" else "O"}"
+      )
+
+    val moves: ComponentBuilder =
+      GameState.bind(_.history.indices.foreach(move =>
+        val desc =
+          if move > 0 then "Go to move #" + move
+          else "Go to game start"
+        li{button{onclick(() => GameState.jumpTo(move)); desc.t}}
+      ))
 
     div{className("game")
       div{className("game-board")
         Board().render
       }
       div{className("game-info")
-        div{/* status */}
-        ol{/* todo */}
+        div{status}
+        ol{moves}
       }
     }
 
